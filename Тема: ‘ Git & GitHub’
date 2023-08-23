@@ -1,0 +1,101 @@
+#Курс: ‘ Python Basic ’
+#Тема: ‘ Дескриптор ’
+
+
+#1. Створити клас User для користувача, клас містить наступні поля: Ім’я , Призвіще , Вік та Кількість підписок.
+#У кожного поля є свої обмеження:
+#a. Ім’я має містити більше 3 символів
+#b. Призвіще має містити більше 4 символів
+#c. Кількість років має знаходитись у діапазоні від 18 до 60
+#d. Кількість підписок не більше за 999
+
+
+class User:
+    def __init__(self, name, surname, age, subscriptions):
+        if len(name) < 3:
+            raise ValueError("Ім’я має містити більше 3 символів")
+        if len(surname) < 4:
+            raise ValueError("Прізвище має містити більше 4 символів")
+        if age < 18 or age > 60:
+            raise ValueError("Кількість років має знаходитись у діапазоні від 18 до 60")
+        if subscriptions > 999:
+            raise ValueError("Кількість підписок не більше за 999")
+        self.name = name
+        self.surname = surname
+        self.age = age
+        self.subscriptions = subscriptions
+
+
+user = User(name="Yana", surname="Vysotskaya", age=26, subscriptions=500)
+
+print(user.name)
+# John Doe
+
+print(user.surname)
+# Doe
+
+print(user.age)
+# 30
+
+print(user.subscriptions)
+# 500
+
+
+#2. Створити Дескриптор для керування рядковими значеннями та дескриптор для керування чисельними значеннями.
+#Врахувати обмеження встановлені для кожного значення. Використати створені дескриптори у класі User.
+
+class ValueRestrictionDescriptor:
+    def __init__(self, min_value, max_value):
+        self.min_value = min_value
+        self.max_value = max_value
+        self.value_name = None
+
+    def __get__(self, instance, owner):
+        return instance.__dict__[self.value_name]
+
+    def __set__(self, instance, value):
+        if self.min_value <= value <= self.max_value:
+            instance.__dict__[self.value_name] = value
+        else:
+            raise ValueError(f"Value should be between {self.min_value} and {self.max_value}")
+
+
+class StringLengthDescriptor:
+    def __init__(self, min_length):
+        self.min_length = min_length
+        self.value_name = None
+
+    def __get__(self, instance, owner):
+        return instance.__dict__[self.value_name]
+
+    def __set__(self, instance, value):
+        if len(value) >= self.min_length:
+            instance.__dict__[self.value_name] = value
+        else:
+            raise ValueError(f"String length should be at least {self.min_length} characters")
+
+
+class User:
+    def __init__(self, first_name, last_name, age, num_subscriptions):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.num_subscriptions = num_subscriptions
+
+    first_name = StringLengthDescriptor(4)
+    last_name = StringLengthDescriptor(5)
+    age = ValueRestrictionDescriptor(18, 60)
+    num_subscriptions = ValueRestrictionDescriptor(0, 999)
+
+
+try:
+    user1 = User("Yana", "Vysotskaya", 15, 500)
+    print("User created successfully!")
+except ValueError as e:
+    print("Error:", e)
+
+try:
+    user2 = User("Yana", "Vysotskaya", 26, 600)
+    print("User created successfully!")
+except ValueError as e:
+    print("Error:", e)
